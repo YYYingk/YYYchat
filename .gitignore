@@ -1,2 +1,9 @@
 YYYchat/build
 YYYchat/.qtcreator
+x64
+*.vcxproj
+*.filters
+*.user
+*.sln
+*.props
+.vs

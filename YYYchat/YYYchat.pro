@@ -1,4 +1,4 @@
-QT += widgets
+QT += widgets network
 
 RC_ICONS = wec.ico
 DESTDIR = ./bin
@@ -11,6 +11,7 @@ CONFIG += c++17
 
 SOURCES += \
     global.cpp \
+    httpmgr.cpp \
     logindialog.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -18,9 +19,11 @@ SOURCES += \
 
 HEADERS += \
     global.h \
+    httpmgr.h \
     logindialog.h \
     mainwindow.h \
-    registerdialog.h
+    registerdialog.h \
+    singleton.h
 
 FORMS += \
     logindialog.ui \
