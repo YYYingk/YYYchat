@@ -6,6 +6,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    // 加载qss
     QFile qss(":/style/stylesheet.qss");
     if(qss.open(QFile::ReadOnly)){
         qDebug("open success");
@@ -15,7 +16,7 @@ int main(int argc, char *argv[])
     } else {
         qDebug("Open failed");
     }
-
+    // 加载配置
     QString filename = "config.ini";
     QString app_path = QCoreApplication::applicationDirPath();
     QString config_path = QDir::toNativeSeparators(app_path + QDir::separator() + filename);
