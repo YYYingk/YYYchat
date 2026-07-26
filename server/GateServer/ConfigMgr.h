@@ -44,20 +44,17 @@ public:
 		return _config_map[section];
 	}
 
-	ConfigMgr();
-
-	ConfigMgr(const ConfigMgr& src) {
-		_config_map = src._config_map;
+	static ConfigMgr& Inst() {
+		static ConfigMgr cfg_mgr;
+		return cfg_mgr;
 	}
 
-	ConfigMgr& operator = (const ConfigMgr& src) {
-		if (&src == this) {
-			return *this;
-		}
+	ConfigMgr(const ConfigMgr& src) = delete;
 
-		_config_map = src._config_map;
-	}
+	ConfigMgr& operator = (const ConfigMgr& src) = delete;
+
 private:
+	ConfigMgr();
 	std::map<std::string, SectionInfo> _config_map;
 };
 
