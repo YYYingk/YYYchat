@@ -30,6 +30,7 @@ public:
     ~MainWindow() override;
 public slots:
     void SlotSwitchReg();
+    void SlotSwitchLogin();
 private:
     Ui::MainWindow *ui;
     LoginDialog *_login_dlg;

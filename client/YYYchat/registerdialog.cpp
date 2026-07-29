@@ -4,8 +4,9 @@
 #include "httpmgr.h"
 
 RegisterDialog::RegisterDialog(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::RegisterDialog)
+    : QDialog(parent),
+    ui(new Ui::RegisterDialog),
+    _countdown(5)
 {
     ui->setupUi(this);
     ui->pass_edit->setEchoMode(QLineEdit::Password);
@@ -35,6 +36,52 @@ RegisterDialog::RegisterDialog(QWidget *parent)
 
     connect(ui->varify_edit, &QLineEdit::editingFinished, this, [this](){
         checkVarifyValid();
+    });
+
+    // 设置浮标显示手形状
+    ui->pass_visible->setCursor(Qt::PointingHandCursor);
+    ui->confirm_visible->setCursor(Qt::PointingHandCursor);
+
+    ui->pass_visible->SetState("unvisible","unvisible_hover","unvisible_hover","visible",
+                               "visible_hover","visible_hover");
+
+    ui->confirm_visible->SetState("unvisible","unvisible_hover","unvisible_hover","visible",
+                                  "visible_hover","visible_hover");
+
+    //连接点击事件
+    connect(ui->pass_visible, &ClickedLabel::clicked, this, [this]() {
+        auto state = ui->pass_visible->GetCurState();
+        if(state == ClickLbState::Normal){
+            ui->pass_edit->setEchoMode(QLineEdit::Password);
+        }else{
+            ui->pass_edit->setEchoMode(QLineEdit::Normal);
+        }
+        qDebug() << "Label was clicked!";
+    });
+
+    connect(ui->confirm_visible, &ClickedLabel::clicked, this, [this]() {
+        auto state = ui->confirm_visible->GetCurState();
+        if(state == ClickLbState::Normal){
+            ui->confirm_edit->setEchoMode(QLineEdit::Password);
+        }else{
+            ui->confirm_edit->setEchoMode(QLineEdit::Normal);
+        }
+        qDebug() << "Label was clicked!";
+    });
+
+    // 创建定时器
+    _countdown_timer = new QTimer(this);
+
+    // 连接信号和槽
+    connect(_countdown_timer, &QTimer::timeout, [this](){
+        if(_countdown == 0){
+            _countdown_timer->stop();
+            emit sigSwitchLogin();
+            return;
+        }
+        _countdown--;
+        auto str = QString("注册成功, %1 s后返回登录").arg(_countdown);
+        ui->tip_lb->setText(str);
     });
 }
 
@@ -236,6 +283,8 @@ void RegisterDialog::initHttpHandlers()
         showTip(tr("用户注册成功"), true);
         qDebug() << "uuid is " << jsonObj["uid"].toString();
         qDebug() << "email is " << email ;
+
+        ChangeTipPage();
     });
 }
 
@@ -248,6 +297,15 @@ void RegisterDialog::showTip(QString str, bool b_ok)
     }
     ui->err_tip->setText(str);
     repolish(ui->err_tip);
+}
+
+void RegisterDialog::ChangeTipPage()
+{
+    _countdown_timer->stop();
+    ui->stackedWidget->setCurrentWidget(ui->page_2);
+
+    // 启动定时器
+    _countdown_timer->start(1000);
 }
 
 void RegisterDialog::on_sure_btn_clicked()
@@ -291,5 +349,12 @@ void RegisterDialog::on_sure_btn_clicked()
     json_obj["varifycode"] = ui->varify_edit->text();
     HttpMgr::GetInstance()->PostHttpReq(QUrl(gate_url_prefix+"/user_register"),
                                         json_obj, ReqId::ID_REG_USER,Modules::REGISTERMOD);
+}
+
+
+void RegisterDialog::on_return_btn_clicked()
+{
+    _countdown_timer->stop();
+    emit sigSwitchLogin();
 }
 

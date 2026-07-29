@@ -14,9 +14,10 @@ class LoginDialog : public QDialog
 public:
     explicit LoginDialog(QWidget *parent = nullptr);
     ~LoginDialog();
-
 private:
     Ui::LoginDialog *ui;
+public slots:
+    void slot_forget_pwd();
 signals:
     void switchRegister();
 };
