@@ -10,8 +10,8 @@
 
 class SqlConnection {
 public:
-    SqlConnection(sql::Connection* con, int64_t lastime) : _con(con), _last_oper_time(lastime){}
-    std::unique_ptr<sql::Connection> _con;
+	SqlConnection(sql::Connection* con, int64_t lastime) : _con(con), _last_oper_time(lastime) {}
+	std::unique_ptr<sql::Connection> _con;
     int64_t _last_oper_time;
 };
 
@@ -146,9 +146,9 @@ public:
 	MysqlDao();
 	~MysqlDao();
 	int RegUser(const std::string& name, const std::string& email, const std::string& pwd);
-	/*bool CheckEmail(const std::string& name, const std::string& email);
+	bool CheckEmail(const std::string& name, const std::string& email);
 	bool UpdatePwd(const std::string& name, const std::string& newpwd);
-	bool CheckPwd(const std::string& name, const std::string& pwd, UserInfo& userInfo);*/
+	bool CheckPwd(const std::string& email, const std::string& pwd, UserInfo& userInfo);
 private:
 	std::unique_ptr<MySqlPool> pool_;
 };

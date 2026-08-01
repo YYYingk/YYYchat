@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>res/er.jpeg</file>
         <file>style/stylesheet.qss</file>
         <file>config.ini</file>
         <file>res/add_friend.png</file>
@@ -53,5 +52,6 @@
         <file>res/voice_chat_hover.png</file>
         <file>res/voice_chat_normal.png</file>
         <file>res/voice_chat_press.png</file>
+        <file>res/head_1.jpeg</file>
     </qresource>
 </RCC>
