@@ -31,13 +31,14 @@ private:
     QString _token;
 public slots:
     void slot_forget_pwd();
+    void on_login_btn_clicked();
+    void slot_login_mod_finish(ReqId id, QString res, ErrorCodes err);
+    void slot_tcp_con_finish(bool bsuccess);
+    void slot_login_failed(int);
 signals:
     void switchRegister();
     void switchReset();
-    void sig_connect_tcp(ServerInfo);
-private slots:
-    void on_login_btn_clicked();
-    void slot_login_mod_finish(ReqId id, QString res, ErrorCodes err);
+    void    sig_connect_tcp(ServerInfo);
 };
 
 #endif // LOGINDIALOG_H
