@@ -38,7 +38,7 @@ public slots:
 signals:
     void switchRegister();
     void switchReset();
-    void    sig_connect_tcp(ServerInfo);
+    void sig_connect_tcp(ServerInfo);
 };
 
 #endif // LOGINDIALOG_H
