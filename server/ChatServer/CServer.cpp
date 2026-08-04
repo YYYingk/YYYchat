@@ -28,6 +28,7 @@ void CServer::HandleAccept(shared_ptr<CSession> new_session, const boost::system
 void CServer::StartAccept() {
 	auto &io_context = AsioIOServicePool::GetInstance()->GetIOService();
 	shared_ptr<CSession> new_session = make_shared<CSession>(io_context, this);
+	// 异步等连接来然后回调
 	_acceptor.async_accept(new_session->GetSocket(), std::bind(&CServer::HandleAccept, this, new_session, placeholders::_1));
 }
 
