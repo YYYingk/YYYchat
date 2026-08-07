@@ -2,6 +2,7 @@
 #define TCPMGR_H
 #include "global.h"
 #include "singleton.h"
+#include "userdata.h"
 
 class TcpMgr : public QObject, public Singleton<TcpMgr>
 {
@@ -29,6 +30,7 @@ signals:
     void sig_send_data(ReqId reqId, QString data);
     void sig_switch_chatdlg();
     void sig_login_failed(int);
+    void sig_user_search(std::shared_ptr<SearchInfo>);
 };
 
 #endif // TCPMGR_H
