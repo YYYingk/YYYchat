@@ -9,6 +9,7 @@
 #include <memory>
 #include "loadingdlg.h"
 #include "userdata.h"
+#include "global.h"
 
 class SearchList: public QListWidget
 {

@@ -11,6 +11,7 @@ CONFIG += c++17
 
 SOURCES += \
     adduseritem.cpp \
+    applyfriend.cpp \
     bubbleframe.cpp \
     chatdialog.cpp \
     chatitembase.cpp \
@@ -21,6 +22,7 @@ SOURCES += \
     clickedbtn.cpp \
     clickedlabel.cpp \
     customizeedit.cpp \
+    findsuccessdlg.cpp \
     global.cpp \
     httpmgr.cpp \
     listitembase.cpp \
@@ -42,6 +44,7 @@ SOURCES += \
 
 HEADERS += \
     adduseritem.h \
+    applyfriend.h \
     bubbleframe.h \
     chatdialog.h \
     chatitembase.h \
@@ -52,6 +55,7 @@ HEADERS += \
     clickedbtn.h \
     clickedlabel.h \
     customizeedit.h \
+    findsuccessdlg.h \
     global.h \
     httpmgr.h \
     listitembase.h \
@@ -73,9 +77,11 @@ HEADERS += \
 
 FORMS += \
     adduseritem.ui \
+    applyfriend.ui \
     chatdialog.ui \
     chatpage.ui \
     chatuserwid.ui \
+    findsuccessdlg.ui \
     loadingdlg.ui \
     logindialog.ui \
     mainwindow.ui \
@@ -90,4 +96,23 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 RESOURCES += \
     rc.qrc
 
-DISTFILES += \
+# ========== 文件拷贝（qmake 阶段执行，MinGW 绝对可用） ==========
+# 将 Qt 内部路径转为 Windows 原生路径
+WIN_PWD = $$replace(PWD, /, \\)
+WIN_OUT_PWD = $$replace(OUT_PWD, /, \\)
+
+# 目标目录
+DST_DIR = $$WIN_OUT_PWD\\bin
+
+# 创建目标目录（若不存在）
+system(cmd /c "if not exist \"$$DST_DIR\" mkdir \"$$DST_DIR\"")
+
+# 复制 config.ini
+system(cmd /c "copy /Y \"$$WIN_PWD\\config.ini\" \"$$DST_DIR\"")
+
+# 复制 static 文件夹
+system(cmd /c "xcopy /Y /E /I \"$$WIN_PWD\\static\" \"$$DST_DIR\\static\\\"")
+
+# 调试输出（会打印在“编译输出”窗口）
+message("Copied config.ini to $$DST_DIR")
+message("Copied static/    to $$DST_DIR\\static")

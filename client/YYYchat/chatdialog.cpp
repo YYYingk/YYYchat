@@ -6,6 +6,7 @@
 #include "loadingdlg.h"
 #include "statewidget.h"
 #include "chatdialog.h"
+#include <QMouseEvent>
 
 ChatDialog::ChatDialog(QWidget *parent)
     : QDialog(parent)
@@ -61,11 +62,12 @@ ChatDialog::ChatDialog(QWidget *parent)
     ui->side_head_lb->setPixmap(scaledPixmap); // 将缩放后的图片设置到QLabel上
     ui->side_head_lb->setScaledContents(true); // 设置QLabel自动缩放图片内容以适应大小
 
-    ui->side_chat_lb->setProperty("state","normal");
-
     ui->side_chat_lb->SetState("normal","hover","pressed","selected_normal","selected_hover","selected_pressed");
 
     ui->side_contact_lb->SetState("normal","hover","pressed","selected_normal","selected_hover","selected_pressed");
+
+    //设置聊天label选中状态
+    ui->side_chat_lb->SetSelected(true);
 
     AddLBGroup(ui->side_chat_lb);
     AddLBGroup(ui->side_contact_lb);
@@ -76,7 +78,8 @@ ChatDialog::ChatDialog(QWidget *parent)
     //链接搜索框输入变化
     connect(ui->search_edit, &QLineEdit::textChanged, this, &ChatDialog::slot_text_changed);
 
-    ShowSearch(false);
+    // 检测鼠标点击位置判断是否要清空搜索框
+    this->installEventFilter(this); // 安装事件过滤器，事件到来后，让事件先在这查
 }
 
 ChatDialog::~ChatDialog()
@@ -100,7 +103,7 @@ std::vector<QString> heads = {
 };
 
 std::vector<QString> names = {
-    "llfc",
+    "yyying",
     "zack",
     "golang",
     "cpp",
@@ -126,6 +129,34 @@ void ChatDialog::addChatUserList()
         item->setSizeHint(chat_user_wid->sizeHint());
         ui->chat_user_list->addItem(item);
         ui->chat_user_list->setItemWidget(item, chat_user_wid);
+    }
+}
+
+bool ChatDialog::eventFilter(QObject *watched, QEvent *event)
+{
+    if(event->type() == QEvent::MouseButtonPress){
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*> (event);
+        handleGlobalMousePress(mouseEvent);
+    }
+
+    return QDialog::eventFilter(watched, event);
+}
+
+void ChatDialog::handleGlobalMousePress(QMouseEvent *event)
+{
+    // 实现点击位置的判断和处理逻辑
+    // 先判断是否处于搜索模式，如果不处于搜索模式则直接返回
+    if( _mode != ChatUIMode::SearchMode){
+        return;
+    }
+
+    // 将鼠标点击位置转换为搜索列表坐标系中的位置
+    QPoint posInSearchList =(ui->search_list->mapFromGlobal(event->globalPosition())).toPoint();
+    // 判断点击位置是否在聊天列表的范围内
+    if (!ui->search_list->rect().contains(posInSearchList)) {
+        // 如果不在聊天列表内，清空输入框
+        ui->search_edit->clear();
+        ShowSearch(false);
     }
 }
 

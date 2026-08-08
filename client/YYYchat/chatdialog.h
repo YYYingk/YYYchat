@@ -16,8 +16,11 @@ class ChatDialog : public QDialog
 public:
     explicit ChatDialog(QWidget *parent = nullptr);
     ~ChatDialog();
-    void addChatUserList();
+protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
+    void handleGlobalMousePress(QMouseEvent *event) ;
 private:
+    void addChatUserList();
     void ShowSearch(bool bsearch = false);
     void AddLBGroup(StateWidget* lb);
     void ClearLabelState(StateWidget* lb);
