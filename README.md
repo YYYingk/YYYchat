@@ -200,7 +200,7 @@ GetVarifyCode(email) → (email, error)
 
 **负载均衡策略：**
 - 启动时从配置文件加载所有 ChatServer 实例信息
-- `GetChatServer` 采用**最少连接数（Least Connection）**算法选择 ChatServer
+- `GetChatServer` 采用 **最少连接数（Least Connection）** 算法选择 ChatServer
 - 每次分配时生成唯一的 UUID Token，存入内存映射表 `_tokens`
 - ChatServer 收到客户端连接后，调用 `Login` RPC 二次校验 Token
 
