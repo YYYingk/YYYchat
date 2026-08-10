@@ -99,6 +99,38 @@ enum class ChatRole
     Other
 };
 
+const std::vector<QString>  strs ={"hello world !",
+                                   "nice to meet u",
+                                   "New year，new life",
+                                   "You have to love yourself",
+                                   "My love is written in the wind ever since the whole world is you"};
+
+const std::vector<QString> heads = {
+    ":/res/head_1.jpeg",
+    ":/res/head_2.jpeg",
+    ":/res/head_3.jpeg",
+    ":/res/head_4.jpeg",
+    ":/res/head_5.jpeg"
+};
+
+const std::vector<QString> names = {
+    "HanMeiMei",
+    "Lily",
+    "Ben",
+    "Androw",
+    "Max",
+    "Summer",
+    "Candy",
+    "Hunter"
+};
+
 extern QString gate_url_prefix;
+
+//申请好友标签输入框最低长度
+const int MIN_APPLY_LABEL_ED_LEN = 40;
+
+const QString add_prefix = "添加标签 ";
+
+const int  tip_offset = 5;
 
 #endif // GLOBAL_H
