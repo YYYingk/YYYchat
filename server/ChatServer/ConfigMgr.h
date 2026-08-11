@@ -47,7 +47,7 @@ class ConfigMgr
 {
 public:
 	~ConfigMgr() {
-		_config_map.clear();
+		_config_map.clear(); 
 	}
 	SectionInfo operator[](const std::string& section) {
 		if (_config_map.find(section) == _config_map.end()) {

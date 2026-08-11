@@ -88,7 +88,6 @@ struct FriendInfo {
     QString _desc;
     QString _back;
     QString _last_msg;
-
 };
 
 struct UserInfo {
@@ -129,7 +128,5 @@ struct UserInfo {
     QString _last_msg;
 
 };
-
-
 
 #endif
