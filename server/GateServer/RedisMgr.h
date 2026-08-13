@@ -31,11 +31,15 @@ public:
     }
 
     ~RedisConPool() {
+
+    }
+
+    void ClearConnections() {
         std::lock_guard<std::mutex> lock(mutex_);
         while (!connections_.empty()) {
             auto* context = connections_.front();
-            connections_.pop();
             redisFree(context);
+            connections_.pop();
         }
     }
 
@@ -89,7 +93,6 @@ public:
     ~RedisMgr();
     bool Get(const std::string& key, std::string& value);
     bool Set(const std::string& key, const std::string& value);
-    bool Auth(const std::string& password);
     bool LPush(const std::string& key, const std::string& value);
     bool LPop(const std::string& key, std::string& value);
     bool RPush(const std::string& key, const std::string& value);
@@ -99,8 +102,10 @@ public:
     std::string HGet(const std::string& key, const std::string& hkey);
     bool Del(const std::string& key);
     bool ExistsKey(const std::string& key);
-    void Close();
-
+    void Close() {
+        _con_pool->Close();
+        _con_pool->ClearConnections();
+    }
 private:
     RedisMgr();
 

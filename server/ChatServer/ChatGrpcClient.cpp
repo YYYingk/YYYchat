@@ -29,7 +29,7 @@ ChatGrpcClient::ChatGrpcClient()
 
 }
 
-AddFriendRsp ChatGrpcClient::NotifyAddFriend(std::string server_ip, const AddFriendReq& req)
+AddFriendRsp ChatGrpcClient::NotifyAddFriend(std::string server_ip, const AddFriendReq& req)  
 {
 	return AddFriendRsp();
 }

@@ -2,6 +2,8 @@
 #include "ui_registerdialog.h"
 #include "global.h"
 #include "httpmgr.h"
+#include <QRegularExpressionValidator>
+#include <QRandomGenerator>
 
 RegisterDialog::RegisterDialog(QWidget *parent)
     : QDialog(parent),
@@ -9,12 +11,15 @@ RegisterDialog::RegisterDialog(QWidget *parent)
     _countdown(5)
 {
     ui->setupUi(this);
+    ui->user_edit->setValidator(new QRegularExpressionValidator(QRegularExpression("[a-zA-Z0-9]+$"), this));
+    //设置密码格式隐藏
     ui->pass_edit->setEchoMode(QLineEdit::Password);
     ui->confirm_edit->setEchoMode(QLineEdit::Password);
-    ui->err_tip->setProperty("state", "normal");
+    ui->err_tip->setProperty("state","normal");
     repolish(ui->err_tip);
-    connect(HttpMgr::GetInstance().get(), &HttpMgr::sig_reg_mod_finish,
-            this, &RegisterDialog::slot_reg_mod_finish);
+    connect(HttpMgr::GetInstance().get(), &HttpMgr::sig_reg_mod_finish, this,
+            &RegisterDialog::slot_reg_mod_finish);
+    initHttpHandlers();
 
     ui->err_tip->clear();
 

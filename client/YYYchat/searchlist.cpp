@@ -92,11 +92,21 @@ void SearchList::slot_item_clicked(QListWidgetItem *item)
     }
 
     if(itemType == ListItemType::ADD_USER_TIP_ITEM){
-        // todd..
-        _find_dlg = std::make_shared<FindSuccessDlg>(this);
-        auto si = std::make_shared<SearchInfo> (0, "yyying", "yyying", "hello world", 0, "");
-        std::dynamic_pointer_cast<FindSuccessDlg>(_find_dlg)->SetSearchInfo(si);
-        _find_dlg->show();
+        if(_send_pending){
+
+            return;
+        }
+        waitPending(true);
+        auto search_edit = dynamic_cast<CustomizeEdit*> (_search_edit);
+        auto uid_str = search_edit->text();
+        QJsonObject jsonObj;
+        jsonObj["uid"] = uid_str;
+
+        QJsonDocument doc(jsonObj);
+        QString jsonString = doc.toJson(QJsonDocument::Indented);
+
+        //发送tcp请求给chat server
+        emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_SEARCH_USER_REQ, jsonString);
         return;
     }
 
