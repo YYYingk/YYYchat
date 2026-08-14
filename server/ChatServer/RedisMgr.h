@@ -8,7 +8,7 @@
 class RedisConPool {
 public:
 	RedisConPool(size_t poolSize, const char* host, int port, const char* pwd)
-		: poolSize_(poolSize), host_(host), port_(port), b_stop_(false), pwd_(pwd){
+		: poolSize_(poolSize), host_(host), port_(port), b_stop_(false), pwd_(pwd), counter_(0){
 		for (size_t i = 0; i < poolSize_; ++i) {
 			auto* context = redisConnect(host, port);
 			if (context == nullptr || context->err != 0) {
@@ -33,14 +33,24 @@ public:
 		}
 
 		check_thread_ = std::thread([this]() {
-			std::this_thread::sleep_for(std::chrono::seconds(60)); // 每隔 30 秒发送一次 PING 命令
-			checkThread();
-			});
+			while (!b_stop_) {
+				counter_++;
+				if (counter_ >= 60) {
+					checkThread();
+					counter_ = 0;
+				}
 
-		check_thread_.detach();
+				std::this_thread::sleep_for(std::chrono::seconds(1)); // 每隔 30 秒发送一次 PING 命令
+			}	
+		});
+
 	}
 
 	~RedisConPool() {
+
+	}
+
+	void ClearConnections() {
 		std::lock_guard<std::mutex> lock(mutex_);
 		while (!connections_.empty()) {
 			auto* context = connections_.front();
@@ -78,17 +88,26 @@ public:
 	void Close() {
 		b_stop_ = true;
 		cond_.notify_all();
+		check_thread_.join();
 	}
 
 private:
 	void checkThread() {
 		std::lock_guard<std::mutex> lock(mutex_);
+		if (b_stop_) {
+			return;
+		}
 		auto pool_size = connections_.size();
-		for (int i = 0; i < pool_size; i++) {
+		for (int i = 0; i < pool_size && !b_stop_; i++) {
 			auto* context = connections_.front();
 			connections_.pop();
 			try {
 				auto reply = (redisReply*)redisCommand(context, "PING");
+				if (!reply) {
+					std::cout << "reply is null, redis ping failed: " << std::endl;
+					connections_.push(context);
+					continue;
+				}
 				freeReplyObject(reply);
 				connections_.push(context);
 			}
@@ -127,6 +146,7 @@ private:
 	std::mutex mutex_;
 	std::condition_variable cond_;
 	std::thread  check_thread_;
+	int counter_;
 };
 
 class RedisMgr: public Singleton<RedisMgr>, 
@@ -149,6 +169,7 @@ public:
 	bool ExistsKey(const std::string &key);
 	void Close() {
 		_con_pool->Close();
+		_con_pool->ClearConnections();
 	}
 private:
 	RedisMgr();
