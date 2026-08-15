@@ -118,7 +118,7 @@
              </size>
             </property>
             <property name="text">
-             <string>发送添加朋友申请：</string>
+             <string>介绍一下你自己吧：</string>
             </property>
            </widget>
           </item>

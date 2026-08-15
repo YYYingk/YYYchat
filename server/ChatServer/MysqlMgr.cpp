@@ -1,6 +1,10 @@
 #include "MysqlMgr.h"
 
 
+MysqlMgr::MysqlMgr() {
+
+}
+
 MysqlMgr::~MysqlMgr() {
 
 }

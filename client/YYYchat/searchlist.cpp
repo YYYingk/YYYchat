@@ -8,6 +8,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include "findsuccessdlg.h"
+#include "findfaildlg.h"
+#include "usermgr.h"
 
 SearchList::SearchList(QWidget *parent):QListWidget(parent),_find_dlg(nullptr), _search_edit(nullptr), _send_pending(false)
 {
@@ -96,6 +98,11 @@ void SearchList::slot_item_clicked(QListWidgetItem *item)
 
             return;
         }
+
+        if(!_search_edit){
+            return;
+        }
+
         waitPending(true);
         auto search_edit = dynamic_cast<CustomizeEdit*> (_search_edit);
         auto uid_str = search_edit->text();
@@ -103,10 +110,10 @@ void SearchList::slot_item_clicked(QListWidgetItem *item)
         jsonObj["uid"] = uid_str;
 
         QJsonDocument doc(jsonObj);
-        QString jsonString = doc.toJson(QJsonDocument::Indented);
+        QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
         //发送tcp请求给chat server
-        emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_SEARCH_USER_REQ, jsonString);
+        emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_SEARCH_USER_REQ, jsonData);
         return;
     }
 
@@ -116,5 +123,16 @@ void SearchList::slot_item_clicked(QListWidgetItem *item)
 
 void SearchList::slot_user_search(std::shared_ptr<SearchInfo> si)
 {
+    waitPending(false);
+    if(si == nullptr){
+        _find_dlg = std::make_shared<FindFailDlg>(this);
+    } else {
+        //此处分两种情况，一种是搜多到已经是自己的朋友了，一种是未添加好友
+        //查找是否已经是好友todo
 
+        //此处先处理未添加的好友
+        _find_dlg = std::make_shared<FindSuccessDlg>(this);
+        std::dynamic_pointer_cast<FindSuccessDlg>(_find_dlg)->SetSearchInfo(si);
+    }
+    _find_dlg->show();
 }

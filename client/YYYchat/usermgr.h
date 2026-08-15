@@ -17,8 +17,11 @@ public:
     int GetUid();
     QString GetName();
     QString GetIcon();
+    std::shared_ptr<UserInfo> GetUserInfo();
     void AppendApplyList(QJsonArray array);
     void AppendFriendList(QJsonArray array);
+    void AddApplyList(std::shared_ptr<ApplyInfo> app);
+    bool AlreadyApply(int uid);
     std::vector<std::shared_ptr<ApplyInfo>> GetApplyList();
     std::vector<std::shared_ptr<FriendInfo>> GetChatListPerPage();
     bool IsLoadChatFin();
@@ -29,6 +32,8 @@ public:
     bool CheckFriendById(int uid);
     void AddFriend(std::shared_ptr<AuthRsp> auth_rsp);
     void AddFriend(std::shared_ptr<AuthInfo> auth_info);
+    std::shared_ptr<FriendInfo> GetFriendById(int uid);
+    void AppendFriendChatMsg(int friend_id,std::vector<std::shared_ptr<TextChatData>>);
 private:
     UserMgr();
     std::shared_ptr<UserInfo> _user_info;

@@ -211,6 +211,10 @@ void LogicSystem::AddFriendApply(std::shared_ptr<CSession> session, const short&
 	auto& cfg = ConfigMgr::Inst();
 	auto self_name = cfg["SelfServer"]["Name"];
 
+	std::string base_key = USER_BASE_INFO + std::to_string(uid);
+	auto apply_info = std::make_shared<UserInfo>();
+	bool b_info = GetBaseInfo(base_key, uid, apply_info);
+
 	//直接通知对方有申请消息
 	if (to_ip_value == self_name) {
 		auto session = UserMgr::GetInstance()->GetSession(touid);
@@ -232,10 +236,6 @@ void LogicSystem::AddFriendApply(std::shared_ptr<CSession> session, const short&
 
 		return;
 	}
-
-	std::string base_key = USER_BASE_INFO + std::to_string(uid);
-	auto apply_info = std::make_shared<UserInfo>();
-	bool b_info = GetBaseInfo(base_key, uid, apply_info);
 
 	AddFriendReq add_req;
 	add_req.set_applyuid(uid);
