@@ -93,7 +93,6 @@ std::vector<std::shared_ptr<ApplyInfo> > UserMgr::GetApplyList()
 }
 
 std::vector<std::shared_ptr<FriendInfo>> UserMgr::GetChatListPerPage() {
-
     std::vector<std::shared_ptr<FriendInfo>> friend_list;
     int begin = _chat_loaded;
     int end = begin + CHAT_COUNT_PER_PAGE;
@@ -137,7 +136,6 @@ UserMgr::UserMgr():_user_info(nullptr), _chat_loaded(0),_contact_loaded(0)
 {
     connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_auth_rsp, this, &UserMgr::SlotAddFriendRsp);
     connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_add_auth_friend, this, &UserMgr::SlotAddFriendAuth);
-
 }
 
 void UserMgr::SlotAddFriendRsp(std::shared_ptr<AuthRsp> rsp)
