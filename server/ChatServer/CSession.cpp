@@ -207,7 +207,7 @@ void CSession::asyncReadFull(std::size_t maxLength, std::function<void(const boo
 	asyncReadLen(0, maxLength, handler);
 }
 
-//读取指定字节数
+//递归读取指定字节数
 void CSession::asyncReadLen(std::size_t read_len, std::size_t total_len, 
 	std::function<void(const boost::system::error_code&, std::size_t)> handler)
 {

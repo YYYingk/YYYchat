@@ -94,7 +94,7 @@ LogicSystem::LogicSystem()
 
 	});
 
-	// 注册回调逻辑
+	//day11 注册用户逻辑
 	RegPost("/user_register", [](std::shared_ptr<HttpConnection> connection) {
 		auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
 		std::cout << "receive body is " << body_str << std::endl;
@@ -115,6 +115,7 @@ LogicSystem::LogicSystem()
 		auto name = src_root["user"].asString();
 		auto pwd = src_root["passwd"].asString();
 		auto confirm = src_root["confirm"].asString();
+		auto icon = src_root["icon"].asString();
 
 		if (pwd != confirm) {
 			std::cout << "password err " << std::endl;
@@ -144,7 +145,7 @@ LogicSystem::LogicSystem()
 		}
 
 		//查找数据库判断用户是否存在
-		int uid = MysqlMgr::GetInstance()->RegUser(name, email, pwd);
+		int uid = MysqlMgr::GetInstance()->RegUser(name, email, pwd, icon);
 		if (uid == 0 || uid == -1) {
 			std::cout << " user or email exist" << std::endl;
 			root["error"] = ErrorCodes::UserExist;
@@ -158,13 +159,14 @@ LogicSystem::LogicSystem()
 		root["user"] = name;
 		root["passwd"] = pwd;
 		root["confirm"] = confirm;
+		root["icon"] = icon;
 		root["varifycode"] = src_root["varifycode"].asString();
 		std::string jsonstr = root.toStyledString();
 		beast::ostream(connection->_response.body()) << jsonstr;
 		return true;
 	});
 
-	// 重置回调逻辑
+	//重置回调逻辑
 	RegPost("/reset_pwd", [](std::shared_ptr<HttpConnection> connection) {
 		auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
 		std::cout << "receive body is " << body_str << std::endl;

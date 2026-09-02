@@ -210,12 +210,18 @@ bool UserMgr::CheckFriendById(int uid)
 void UserMgr::AddFriend(std::shared_ptr<AuthRsp> auth_rsp)
 {
     auto friend_info = std::make_shared<FriendInfo>(auth_rsp);
+    if(_friend_map.find(friend_info->_uid) == _friend_map.end()){
+        _friend_list.push_back(friend_info);   // 去重后追加
+    }
     _friend_map[friend_info->_uid] = friend_info;
 }
 
 void UserMgr::AddFriend(std::shared_ptr<AuthInfo> auth_info)
 {
     auto friend_info = std::make_shared<FriendInfo>(auth_info);
+    if(_friend_map.find(friend_info->_uid) == _friend_map.end()){
+        _friend_list.push_back(friend_info);   // 去重后追加
+    }
     _friend_map[friend_info->_uid] = friend_info;
 }
 

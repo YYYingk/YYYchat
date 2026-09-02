@@ -28,13 +28,11 @@ ApplyFriendPage::~ApplyFriendPage()
 
 void ApplyFriendPage::AddNewApply(std::shared_ptr<AddFriendApply> apply)
 {
-    //先模拟头像随机，以后头像资源增加资源服务器后再显示
-    int randomValue = QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
-    int head_i = randomValue % heads.size();
     auto* apply_item = new ApplyFriendItem();
-    auto apply_info = std::make_shared<ApplyInfo>(apply->_from_uid,
-                                                  apply->_name, apply->_desc,heads[head_i], apply->_name, 0, 0);
-    apply_item->SetInfo( apply_info);
+    QString icon = apply->_icon;                 // 服务端带过来的真实头像
+    if (icon.isEmpty()) { icon = heads[0]; }     // 空则兜底一张
+    auto apply_info = std::make_shared<ApplyInfo>(apply->_from_uid, apply->_name, apply->_desc, icon, apply->_name, 0, 0);
+    apply_item->SetInfo(apply_info);
     QListWidgetItem* item = new QListWidgetItem;
     //qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
     item->setSizeHint(apply_item->sizeHint());
@@ -42,6 +40,8 @@ void ApplyFriendPage::AddNewApply(std::shared_ptr<AddFriendApply> apply)
     ui->apply_friend_list->insertItem(0,item);
     ui->apply_friend_list->setItemWidget(item, apply_item);
     apply_item->ShowAddBtn(true);
+    //登记到待处理列表中，认证回复后用于隐藏添加按钮
+    _unauth_items[apply_info->_uid] = apply_item;
     //收到审核好友信号
     connect(apply_item, &ApplyFriendItem::sig_auth_friend, [this](std::shared_ptr<ApplyInfo> apply_info) {
         auto* authFriend = new AuthenFriend(this);
@@ -64,10 +64,8 @@ void ApplyFriendPage::loadApplyList()
     //添加好友申请
     auto apply_list = UserMgr::GetInstance()->GetApplyList();
     for(auto &apply: apply_list){
-        int randomValue = QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
-        int head_i = randomValue % heads.size();
         auto* apply_item = new ApplyFriendItem();
-        apply->SetIcon(heads[head_i]);
+        if (apply->_icon.isEmpty()) { apply->SetIcon(heads[0]); }   // 空才兜底
         apply_item->SetInfo(apply);
         QListWidgetItem* item = new QListWidgetItem;
         //qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();

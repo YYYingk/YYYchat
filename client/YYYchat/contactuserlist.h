@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <memory>
 #include "userdata.h"
+#include <QSet>
 
 class ConUserItem;
 
@@ -24,7 +25,7 @@ private:
 
 public slots:
     void slot_item_clicked(QListWidgetItem *item);
-    void slot_add_auth_firend(std::shared_ptr<AuthInfo>);
+    void slot_add_auth_friend(std::shared_ptr<AuthInfo>);
     void slot_auth_rsp(std::shared_ptr<AuthRsp>);
 signals:
     void sig_loading_contact_user();
@@ -35,6 +36,7 @@ private:
     bool _load_pending;
     ConUserItem* _add_friend_item;
     QListWidgetItem * _groupitem;
+    QSet<int> _con_user_added;
 };
 
 #endif // CONTACTUSERLIST_H

@@ -166,5 +166,5 @@ void StateWidget::AddRedPoint()
 
 void StateWidget::ShowRedPoint(bool show)
 {
-    _red_point->setVisible(true);
+    _red_point->setVisible(show);
 }

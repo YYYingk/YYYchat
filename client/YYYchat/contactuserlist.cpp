@@ -25,7 +25,7 @@ ContactUserList::ContactUserList(QWidget *parent): _add_friend_item(nullptr)
     connect(this, &QListWidget::itemClicked, this, &ContactUserList::slot_item_clicked);
     // 链接对端同意认证后通知的信号
     connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_add_auth_friend,this,
-            &ContactUserList::slot_add_auth_firend);
+            &::ContactUserList::slot_add_auth_friend);
 
     // 链接自己点击同意认证后界面刷新
     connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_auth_rsp,this,
@@ -98,7 +98,6 @@ bool ContactUserList::eventFilter(QObject *watched, QEvent *event)
 void ContactUserList::addContactUserList()
 {
     //获取好友列表
-
     auto * groupTip = new GroupTipItem();
     QListWidgetItem *item = new QListWidgetItem;
     item->setSizeHint(groupTip->sizeHint());
@@ -200,20 +199,17 @@ void ContactUserList::slot_item_clicked(QListWidgetItem *item)
     }
 }
 
-void ContactUserList::slot_add_auth_firend(std::shared_ptr<AuthInfo> auth_info)
+void ContactUserList::slot_add_auth_friend(std::shared_ptr<AuthInfo> auth_info)
 {
     qDebug() << "slot add auth friend ";
-    bool isFriend = UserMgr::GetInstance()->CheckFriendById(auth_info->_uid);
-    if(isFriend){
+    //判断如果已经插入了这个好友item则return
+    if(_con_user_added.contains(auth_info->_uid)){
         return;
     }
-    // 在 groupitem 之后插入新项
-    int randomValue = QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
-    int str_i = randomValue%strs.size();
-    int head_i = randomValue%heads.size();
+    _con_user_added.insert(auth_info->_uid);
 
     auto *con_user_wid = new ConUserItem();
-    con_user_wid->SetInfo(auth_info);
+    con_user_wid->SetInfo(auth_info->_uid, auth_info->_name, auth_info->_icon.isEmpty() ? heads[0] : auth_info->_icon);
     QListWidgetItem *item = new QListWidgetItem;
     //qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
     item->setSizeHint(con_user_wid->sizeHint());
@@ -230,17 +226,14 @@ void ContactUserList::slot_add_auth_firend(std::shared_ptr<AuthInfo> auth_info)
 void ContactUserList::slot_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp)
 {
     qDebug() << "slot auth rsp called";
-    bool isFriend = UserMgr::GetInstance()->CheckFriendById(auth_rsp->_uid);
-    if(isFriend){
+    //判断如果已经插入了这个好友item则return
+    if(_con_user_added.contains(auth_rsp->_uid)){
         return;
     }
+    _con_user_added.insert(auth_rsp->_uid);
     // 在 groupitem 之后插入新项
-    int randomValue = QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
-    int str_i = randomValue%strs.size();
-    int head_i = randomValue%heads.size();
-
     auto *con_user_wid = new ConUserItem();
-    con_user_wid->SetInfo(auth_rsp->_uid ,auth_rsp->_name, heads[head_i]);
+    con_user_wid->SetInfo(auth_rsp->_uid, auth_rsp->_name, auth_rsp->_icon.isEmpty() ? heads[0] : auth_rsp->_icon);          // 用真实 icon（ConUserItem 已有这个重载）
     QListWidgetItem *item = new QListWidgetItem;
     //qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
     item->setSizeHint(con_user_wid->sizeHint());

@@ -418,6 +418,9 @@ void ChatDialog::slot_side_contact(){
     ClearLabelState(ui->side_contact_lb);
     //设置
     ui->stackedWidget->setCurrentWidget(ui->friend_apply_page);
+    //查看好友申请后清除红点提示
+    ui->side_contact_lb->ShowRedPoint(false);
+    ui->con_user_list->ShowRedPoint(false);
     _state = ChatUIMode::ContactMode;
     ShowSearch(false);
 }
@@ -469,18 +472,13 @@ void ChatDialog::slot_add_auth_friend(std::shared_ptr<AuthInfo> auth_info) {
     qDebug() << "receive slot_add_auth__friend uid is " << auth_info->_uid
              << " name is " << auth_info->_name << " nick is " << auth_info->_nick;
 
-    //判断如果已经是好友则跳过
-    auto bfriend = UserMgr::GetInstance()->CheckFriendById(auth_info->_uid);
-    if(bfriend){
+    //判断如果已经插入了这个好友item则return
+    auto find_iter = _chat_items_added.find(auth_info->_uid);
+    if(find_iter != _chat_items_added.end()) {
         return;
     }
 
     UserMgr::GetInstance()->AddFriend(auth_info);
-
-    int randomValue = QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
-    int str_i = randomValue % strs.size();
-    int head_i = randomValue % heads.size();
-    int name_i = randomValue % names.size();
 
     auto* chat_user_wid = new ChatUserWid();
     auto user_info = std::make_shared<UserInfo>(auth_info);
@@ -498,17 +496,13 @@ void ChatDialog::slot_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp)
     qDebug() << "receive slot_auth_rsp uid is " << auth_rsp->_uid
              << " name is " << auth_rsp->_name << " nick is " << auth_rsp->_nick;
 
-    //判断如果已经是好友则跳过
-    auto bfriend = UserMgr::GetInstance()->CheckFriendById(auth_rsp->_uid);
-    if(bfriend){
+    //判断如果已经插入了这个好友item则return
+    auto find_iter = _chat_items_added.find(auth_rsp->_uid);
+    if(find_iter != _chat_items_added.end()) {
         return;
     }
 
     UserMgr::GetInstance()->AddFriend(auth_rsp);
-    int randomValue = QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
-    int str_i = randomValue % strs.size();
-    int head_i = randomValue % heads.size();
-    int name_i = randomValue % names.size();
 
     auto* chat_user_wid = new ChatUserWid();
     auto user_info = std::make_shared<UserInfo>(auth_rsp);
@@ -604,6 +598,9 @@ void ChatDialog::slot_switch_apply_friend_page()
     qDebug()<<"receive switch apply friend page sig";
     _last_widget = ui->friend_apply_page;
     ui->stackedWidget->setCurrentWidget(ui->friend_apply_page);
+    //查看好友申请后清除红点提示
+    ui->side_contact_lb->ShowRedPoint(false);
+    ui->con_user_list->ShowRedPoint(false);
 }
 
 void ChatDialog::slot_item_clicked(QListWidgetItem *item)
