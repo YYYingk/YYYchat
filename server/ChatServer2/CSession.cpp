@@ -6,6 +6,7 @@
 #include <json/value.h>
 #include <json/reader.h>
 #include "LogicSystem.h"
+#include "RedisMgr.h"
 
 CSession::CSession(boost::asio::io_context& io_context, CServer* server):
 	_socket(io_context), _server(server), _b_close(false),_b_head_parse(false){
@@ -87,10 +88,37 @@ void CSession::AsyncReadBody(int total_len)
 	auto self = shared_from_this();
 	asyncReadFull(total_len, [self, this, total_len](const boost::system::error_code& ec, std::size_t bytes_transfered) {
 		try {
+			// 离线报错
 			if (ec) {
 				std::cout << "handle read failed, error is " << ec.what() << endl;
 				Close();
-				_server->ClearSession(_session_id);
+
+				//加锁清除session
+				auto uid_str = std::to_string(_user_uid);
+				auto lock_key = LOCK_PREFIX + uid_str;
+				auto identifier = RedisMgr::GetInstance()->acquireLock(lock_key, LOCK_TIME_OUT, ACQUIRE_TIME_OUT);
+				Defer defer([identifier, lock_key, self, this]() {
+					_server->ClearSession(_session_id);
+					RedisMgr::GetInstance()->releaseLock(lock_key, identifier);
+					});
+
+				if (identifier.empty()) {
+					return;
+				}
+				std::string redis_session_id = "";
+				auto bsuccess = RedisMgr::GetInstance()->Get(USER_SESSION_PREFIX + uid_str, redis_session_id);
+				if (!bsuccess) {
+					return;
+				}
+
+				if (redis_session_id != _session_id) {
+					//说明有客户在其他服务器异地登录了
+					return;
+				}
+
+				RedisMgr::GetInstance()->Del(USER_SESSION_PREFIX + uid_str);
+				//清除用户登录信息
+				RedisMgr::GetInstance()->Del(USERIPPREFIX + uid_str);
 				return;
 			}
 
@@ -173,6 +201,18 @@ void CSession::AsyncReadHead(int total_len)
 			std::cout << "Exception code is " << e.what() << endl;
 		}
 		});
+}
+
+void CSession::NotifyOffline(int uid) {
+
+	Json::Value rtvalue;
+	rtvalue["error"] = ErrorCodes::Success;
+	rtvalue["uid"] = uid;
+
+	std::string return_str = rtvalue.toStyledString();
+
+	Send(return_str, ID_NOTIFY_OFF_LINE_REQ);
+	return;
 }
 
 void CSession::HandleWrite(const boost::system::error_code& error, std::shared_ptr<CSession> shared_self) {

@@ -34,13 +34,13 @@ void CServer::StartAccept() {
 }
 
 void CServer::ClearSession(std::string session_id) {
+	lock_guard<mutex> lock(_mutex);
 	if (_sessions.find(session_id) != _sessions.end()) {
-		// 移除用户与session的关联
-		UserMgr::GetInstance()->RmvUserSession(_sessions[session_id]->GetUserId());
+		auto uid = _sessions[session_id]->GetUserId();
+
+		//移除用户和session的关联
+		UserMgr::GetInstance()->RmvUserSession(uid, session_id);
 	}
 
-	{
-		lock_guard<mutex> lock(_mutex);
-		_sessions.erase(session_id);
-	}
+	_sessions.erase(session_id);
 }
