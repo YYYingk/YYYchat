@@ -9,7 +9,7 @@
 #include "RedisMgr.h"
 
 CSession::CSession(boost::asio::io_context& io_context, CServer* server):
-	_socket(io_context), _server(server), _b_close(false),_b_head_parse(false){
+	_socket(io_context), _server(server), _b_close(false),_b_head_parse(false), _user_uid(0) {
 	boost::uuids::uuid  a_uuid = boost::uuids::random_generator()();
 	_session_id = boost::uuids::to_string(a_uuid);
 	_recv_head_node = make_shared<MsgNode>(HEAD_TOTAL_LEN);
@@ -75,6 +75,7 @@ void CSession::Send(char* msg, short max_length, short msgid) {
 }
 
 void CSession::Close() {
+	std::lock_guard<std::mutex> lock(_session_mtx);
 	_socket.close();
 	_b_close = true;
 }
@@ -130,6 +131,12 @@ void CSession::AsyncReadBody(int total_len)
 				return;
 			}
 
+			//判断连接无效
+			if (!_server->CheckValid(_session_id)) {
+				Close();
+				return;
+			}
+
 			memcpy(_recv_msg_node->_data , _data , bytes_transfered);
 			_recv_msg_node->_cur_len += bytes_transfered;
 			_recv_msg_node->_data[_recv_msg_node->_total_len] = '\0';
@@ -162,6 +169,12 @@ void CSession::AsyncReadHead(int total_len)
 					<< HEAD_TOTAL_LEN << "]" << endl;
 				Close();
 				_server->ClearSession(_session_id);
+				return;
+			}
+
+			//判断连接无效
+			if (!_server->CheckValid(_session_id)) {
+				Close();
 				return;
 			}
 

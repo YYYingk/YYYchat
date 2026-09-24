@@ -56,6 +56,8 @@ StatusServiceImpl::StatusServiceImpl()
 
 ChatServer StatusServiceImpl::getChatServer() {
 	std::lock_guard<std::mutex> guard(_server_mtx);
+	auto minServer = _servers.begin()->second;
+
 	int min_count = INT_MAX;
 	for (auto& server : _servers) {
 		auto count_str = RedisMgr::GetInstance()->HGet(LOGIN_COUNT, server.second.name);

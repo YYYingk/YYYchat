@@ -38,11 +38,11 @@ public:
 	std::shared_ptr<CSession> SharedSelf();
 	void AsyncReadBody(int length);
 	void AsyncReadHead(int total_len);
+	void NotifyOffline(int uid);
 private:
 	void asyncReadFull(std::size_t maxLength, std::function<void(const boost::system::error_code& , std::size_t)> handler);
 	void asyncReadLen(std::size_t  read_len, std::size_t total_len,
 		std::function<void(const boost::system::error_code&, std::size_t)> handler);
-	
 	
 	void HandleWrite(const boost::system::error_code& error, std::shared_ptr<CSession> shared_self);
 	tcp::socket _socket;
@@ -58,6 +58,8 @@ private:
 	bool _b_head_parse;
 	//收到的头部结构
 	std::shared_ptr<MsgNode> _recv_head_node;
+	//session 锁
+	std::mutex _session_mtx;
 };
 
 class LogicNode {

@@ -20,6 +20,7 @@ class LogicSystem:public Singleton<LogicSystem>
 public:
 	~LogicSystem();
 	void PostMsgToQue(shared_ptr <LogicNode> msg);
+	void SetServer(std::shared_ptr<CServer> pserver);
 private:
 	LogicSystem();
 	void DealMsg();
@@ -41,5 +42,6 @@ private:
 	std::condition_variable _consume;
 	bool _b_stop;
 	std::map<short, FunCallBack> _fun_callbacks;
+	std::shared_ptr<CServer> _p_server;
 };
 

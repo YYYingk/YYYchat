@@ -9,6 +9,7 @@ class TcpMgr : public QObject, public Singleton<TcpMgr>
     Q_OBJECT
 public:
     ~TcpMgr();
+    void CloseConnection();
 private:
     friend class Singleton<TcpMgr>;
     TcpMgr();
@@ -23,9 +24,11 @@ private:
     quint16 _message_len;
     QMap<ReqId, std::function<void(ReqId id, int len, QByteArray data)>> _handlers;
 public slots:
+    void slot_tcp_close();
     void slot_tcp_connect(ServerInfo);
     void slot_send_data(ReqId reqId, QByteArray data);
 signals:
+    void sig_close();
     void sig_con_success(bool bsuccess);
     void sig_send_data(ReqId reqId, QByteArray data);
     void sig_switch_chatdlg();
@@ -35,6 +38,8 @@ signals:
     void sig_add_auth_friend(std::shared_ptr<AuthInfo>);
     void sig_auth_rsp(std::shared_ptr<AuthRsp>);
     void sig_text_chat_msg(std::shared_ptr<TextChatMsg> msg);
+    void sig_notify_offline();
+    void sig_connection_closed();
 };
 
 #endif // TCPMGR_H

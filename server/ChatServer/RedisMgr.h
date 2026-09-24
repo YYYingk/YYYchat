@@ -5,6 +5,8 @@
 #include <atomic>
 #include <mutex>
 #include "Singleton.h"
+
+
 class RedisConPool {
 public:
 	RedisConPool(size_t poolSize, const char* host, int port, const char* pwd)
@@ -171,6 +173,13 @@ public:
 		_con_pool->Close();
 		_con_pool->ClearConnections();
 	}
+	std::string acquireLock(const std::string& lockName, int lockTimeout, int acquireTimeout);
+	bool releaseLock(const std::string& lockName, const std::string& identifier);
+
+	void IncreaseCount(std::string server_name);
+	void DecreaseCount(std::string server_name);
+	void InitCount(std::string server_name);
+	void DelCount(std::string server_name);
 private:
 	RedisMgr();
 	unique_ptr<RedisConPool>  _con_pool;

@@ -62,15 +62,23 @@ TcpMgr::TcpMgr() : _host(""), _port(0),
     // 处理断开
     QObject::connect(&_socket, &QTcpSocket::disconnected, [&](){
         qDebug() << "Disconnected from server";
+        emit sig_connection_closed();
     });
+    //连接发送信号用来发送数据
+    QObject::connect(this, &TcpMgr::sig_send_data, this, &TcpMgr::slot_send_data);    
 
-    QObject::connect(this, &TcpMgr::sig_send_data, this, &TcpMgr::slot_send_data);
+    //关闭socket
+    connect(this, &TcpMgr::sig_close, this, &TcpMgr::slot_tcp_close);
 
     initHandlers();
 }
 
 TcpMgr::~TcpMgr(){
 
+}
+
+void TcpMgr::CloseConnection(){
+    emit sig_close();
 }
 
 void TcpMgr::initHandlers()
@@ -370,6 +378,40 @@ void TcpMgr::initHandlers()
                                                      jsonObj["touid"].toInt(),jsonObj["text_array"].toArray());
         emit sig_text_chat_msg(msg_ptr);
     });
+
+    _handlers.insert(ID_NOTIFY_OFF_LINE_REQ,[this](ReqId id, int len, QByteArray data){
+        Q_UNUSED(len);
+        qDebug() << "handle id is " << id << " data is " << data;
+        // 将QByteArray转换为QJsonDocument
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+
+        // 检查转换是否成功
+        if (jsonDoc.isNull()) {
+            qDebug() << "Failed to create QJsonDocument.";
+            return;
+        }
+
+        QJsonObject jsonObj = jsonDoc.object();
+
+        if (!jsonObj.contains("error")) {
+            int err = ErrorCodes::ERR_JSON;
+            qDebug() << "Notify Chat Msg Failed, err is Json Parse Err" << err;
+            return;
+        }
+
+        int err = jsonObj["error"].toInt();
+        if (err != ErrorCodes::SUCCESS) {
+            qDebug() << "Notify Chat Msg Failed, err is " << err;
+            return;
+        }
+
+        auto uid = jsonObj["uid"].toInt();
+        qDebug() << "Receive offline Notify Success, uid is " << uid ;
+        //断开连接
+        //并且发送通知到界面
+        emit sig_notify_offline();
+
+    });
 }
 
 void TcpMgr::handleMsg(ReqId id, int len, QByteArray data)
@@ -381,6 +423,10 @@ void TcpMgr::handleMsg(ReqId id, int len, QByteArray data)
     }
 
     find_iter.value()(id,len,data);
+}
+
+void TcpMgr::slot_tcp_close() {
+    _socket.close();
 }
 
 void TcpMgr::slot_tcp_connect(ServerInfo si)

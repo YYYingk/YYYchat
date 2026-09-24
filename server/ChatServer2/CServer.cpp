@@ -44,3 +44,23 @@ void CServer::ClearSession(std::string session_id) {
 
 	_sessions.erase(session_id);
 }
+
+bool CServer::CheckValid(std::string uuid)
+{
+	lock_guard<mutex> lock(_mutex);
+	auto it = _sessions.find(uuid);
+	if (it != _sessions.end()) {
+		return true;
+	}
+	return false;
+}
+
+//根据用户获取session
+shared_ptr<CSession> CServer::GetSession(std::string uuid) {
+	lock_guard<mutex> lock(_mutex);
+	auto it = _sessions.find(uuid);
+	if (it != _sessions.end()) {
+		return it->second;
+	}
+	return nullptr;
+}
