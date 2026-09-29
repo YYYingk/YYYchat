@@ -59,6 +59,8 @@ enum MSG_IDS {
 	ID_TEXT_CHAT_MSG_RSP = 1018, //文本聊天信息回复
 	ID_NOTIFY_TEXT_CHAT_MSG_REQ = 1019, //通知用户文本聊天信息
 	ID_NOTIFY_OFF_LINE_REQ = 1021, //通知用户下线
+	ID_HEARTBEAT_REQ = 1023,  // 心跳请求
+	ID_HEARTBEAT_RSP = 1024,  // 心跳回复
 };
 
 #define CODEPREFIX  "code_"
@@ -72,10 +74,12 @@ enum MSG_IDS {
 #define USER_SESSION_PREFIX "usession_"
 #define LOCK_COUNT "lockcount"
 
-//分布式锁的持有时间
+// 分布式锁的持有时间
 #define LOCK_TIME_OUT 10
-//分布式锁的重试时间
+// 分布式锁的重试时间
 #define ACQUIRE_TIME_OUT 5
+// 心跳阈值
+#define HEARTBEAT_EXPIRE 20
 
 enum MsgStatus {
 	UN_READ = 0,  //对方未读

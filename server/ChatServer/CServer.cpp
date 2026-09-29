@@ -2,10 +2,16 @@
 #include <iostream>
 #include "AsioIOServicePool.h"
 #include "UserMgr.h"
+#include "RedisMgr.h"
+#include "ConfigMgr.h"
+
 CServer::CServer(boost::asio::io_context& io_context, short port):_io_context(io_context), _port(port),
-_acceptor(io_context, tcp::endpoint(tcp::v4(),port))
+_acceptor(io_context, tcp::endpoint(tcp::v4(), port)), _timer(io_context, std::chrono::seconds(60))
 {
 	cout << "Server start success, listen on port : " << _port << endl;
+	_timer.async_wait([this](boost::system::error_code ec) {
+		on_timer(ec);
+		});
 	StartAccept();
 }
 
@@ -63,4 +69,43 @@ shared_ptr<CSession> CServer::GetSession(std::string uuid) {
 		return it->second;
 	}
 	return nullptr;
+}
+
+void CServer::on_timer(const boost::system::error_code& ec)
+{
+	std::vector<std::shared_ptr<CSession>> _expired_sessions;
+	int session_count = 0;
+	{
+		lock_guard<mutex> lock(_mutex);
+		time_t now = std::time(nullptr);
+		for (auto it = _sessions.begin(); it != _sessions.end(); ++it) {
+			auto session = it->second;
+			auto b_expired = session->IsHeartbeatExpire(now);
+			if (b_expired){
+				session->Close();
+				_expired_sessions.push_back(session);
+				continue;
+			}
+			else {
+				session_count++;
+			}
+		}
+	}
+
+	// 设置session数量到redis
+	auto& cfg = ConfigMgr::Inst();
+	auto self_name = cfg.GetValue("server", "self_name");
+	auto count_str = std::to_string(session_count);
+	RedisMgr::GetInstance()->HSet(LOGIN_COUNT, self_name, count_str);
+
+	// 处理过期的session
+	for(auto& session : _expired_sessions) {
+		session->DealException();
+	}
+
+	// 再设置下一个60s检测
+	_timer.expires_after(std::chrono::seconds(60));
+	_timer.async_wait([this](boost::system::error_code ec) {
+		on_timer(ec);
+		});
 }

@@ -13,17 +13,22 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(_login_dlg);
     // _login_dlg->show();
 
+    _ui_status = LOGIN_UI;
+
     // 创建和注册消息连接
     connect(_login_dlg, &LoginDialog::switchRegister, this, &MainWindow::SlotSwitchReg);
 
     // 连接登录界面忘记密码信号
     connect(_login_dlg, &LoginDialog::switchReset, this, &MainWindow::SlotSwitchReset);
 
-    //连接创建聊天界面信号
+    // 连接创建聊天界面信号
     connect(TcpMgr::GetInstance().get(),&TcpMgr::sig_switch_chatdlg, this, &MainWindow::SlotSwitchChat);
 
-    //链接服务器踢人消息
+    // 链接服务器踢人消息
     connect(TcpMgr::GetInstance().get(),&TcpMgr::sig_notify_offline, this, &MainWindow::SlotOffline);
+
+    // 链接服务器断开逻辑
+    connect(TcpMgr::GetInstance().get(),&TcpMgr::sig_connection_closed, this, &MainWindow::SlotExcepOffline);
 
     // 测试用
     // emit TcpMgr::GetInstance()->sig_switch_chatdlg();
@@ -45,6 +50,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::SlotSwitchReg()
 {
+    _ui_status = REGISTER_UI;
     // 动态初始化，到用的时候再进行，可以自动帮我们回收注册界面
     _reg_dlg = new RegisterDialog(this);
     _reg_dlg->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
@@ -59,6 +65,7 @@ void MainWindow::SlotSwitchReg()
 
 void MainWindow::SlotSwitchLogin()
 {
+    _ui_status = LOGIN_UI;
     _login_dlg = new LoginDialog(this);
     _login_dlg->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
     setCentralWidget(_login_dlg);
@@ -73,6 +80,7 @@ void MainWindow::SlotSwitchLogin()
 
 void MainWindow::SlotSwitchReset()
 {
+    _ui_status = RESET_UI;
     //创建一个CentralWidget, 并将其设置为MainWindow的中心部件
     _reset_dlg = new ResetDialog(this);
     _reset_dlg->setWindowFlags(Qt::CustomizeWindowHint|Qt::FramelessWindowHint);
@@ -87,6 +95,7 @@ void MainWindow::SlotSwitchReset()
 //从重置界面返回登录界面
 void MainWindow::SlotSwitchLogin2()
 {
+    _ui_status = LOGIN_UI;
     //创建一个CentralWidget, 并将其设置为MainWindow的中心部件
     _login_dlg = new LoginDialog(this);
     _login_dlg->setWindowFlags(Qt::CustomizeWindowHint|Qt::FramelessWindowHint);
@@ -102,6 +111,7 @@ void MainWindow::SlotSwitchLogin2()
 
 void MainWindow::SlotSwitchChat()
 {
+    _ui_status = CHAT_UI;
     _chat_dlg = new ChatDialog(this);
     _chat_dlg->setWindowFlags(Qt::CustomizeWindowHint|Qt::FramelessWindowHint);
     setCentralWidget(_chat_dlg);
@@ -120,7 +130,19 @@ void MainWindow::SlotOffline(){
     offlineLogin();
 }
 
+void MainWindow::SlotExcepOffline()
+{
+    // 使用静态方法直接弹出一个信息框
+    QMessageBox::information(this, "下线提示", "心跳超时或者服务器异常，该终端下线！");
+    TcpMgr::GetInstance()->CloseConnection();
+    offlineLogin();
+}
+
 void MainWindow::offlineLogin(){
+    if(_ui_status == LOGIN_UI){
+        return;
+    }
+    _ui_status = LOGIN_UI;
     //创建一个CentralWidget, 并将其设置为MainWindow的中心部件
     _login_dlg = new LoginDialog(this);
     _login_dlg->setWindowFlags(Qt::CustomizeWindowHint|Qt::FramelessWindowHint);

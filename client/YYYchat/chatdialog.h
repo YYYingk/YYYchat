@@ -39,6 +39,7 @@ private:
     QWidget* _last_widget;
     QMap<int, QListWidgetItem*> _chat_items_added;
     int _cur_chat_uid;
+    QTimer* _timer;
 public slots:
     void slot_loading_chat_user();
     void slot_side_chat();
